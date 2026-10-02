@@ -44,7 +44,7 @@ variable "ingress_settings" {
 
 variable "available_memory" {
   type        = string
-  default     = "256Mi"
+  # default     = "256Mi"
   description = "Memory available to the function in Cloud Run format, for example 256Mi"
 }
 
