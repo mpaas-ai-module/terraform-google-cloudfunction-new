@@ -43,9 +43,9 @@ variable "ingress_settings" {
 }
 
 variable "available_memory" {
-  type        = number
-  default     = 256
-  description = "Memory available to the function"
+  type        = string
+  default     = "256Mi"
+  description = "Memory available to the function in Cloud Run format, for example 256Mi"
 }
 
 variable "timeout_seconds" {
@@ -67,7 +67,7 @@ variable "existing_object_name" {
   type        = string
   description = "The zip file of the bucket"
 }
- 
+
 variable "host_project_id" {
   description = "The host project ID where IAM bindings should be applied"
   type        = string
