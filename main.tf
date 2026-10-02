@@ -75,7 +75,7 @@ resource "time_sleep" "wait_for_apis" {
 }
 
 resource "google_cloudfunctions2_function" "function" {
-  name     = var.function_name
+  name     = var.name
   location = var.bucket_location
   project  = var.project_id
 

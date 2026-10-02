@@ -15,7 +15,7 @@ variable "entry_point" {
   type        = string
   description = "the definiton of cloud run function"
 }
-variable "function_name" {
+variable "name" {
   type        = string
   description = "The name of the Cloud Function"
 }
