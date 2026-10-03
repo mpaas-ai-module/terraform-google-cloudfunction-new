@@ -19,29 +19,29 @@ resource "google_project_service" "apis1" {
   disable_dependent_services = false
 }
 
-resource "google_storage_bucket" "function_bucket" {
-  name          = var.existing_bucket_name
-  project       = var.project_id
-  location      = var.bucket_location
-  force_destroy = true
+# resource "google_storage_bucket" "function_bucket" {
+#   name          = var.existing_bucket_name
+#   project       = var.project_id
+#   location      = var.bucket_location
+#   force_destroy = true
 
-  uniform_bucket_level_access = true
-}
+#   uniform_bucket_level_access = true
+# }
 
-data "archive_file" "function_source" {
-  type        = "zip"
-  source_dir  = "${path.module}/function-source"
-  output_path = "${path.module}/function-source.zip"
-}
+# data "archive_file" "function_source" {
+#   type        = "zip"
+#   source_dir  = "${path.module}/function-source"
+#   output_path = "${path.module}/function-source.zip"
+# }
 
-resource "google_storage_bucket_object" "function_source_zip" {
-  name         = var.existing_object_name
-  bucket       = google_storage_bucket.function_bucket.name
-  source       = data.archive_file.function_source.output_path
-  content_type = "application/zip"
+# resource "google_storage_bucket_object" "function_source_zip" {
+#   name         = var.existing_object_name
+#   bucket       = google_storage_bucket.function_bucket.name
+#   source       = data.archive_file.function_source.output_path
+#   content_type = "application/zip"
 
-  depends_on = [google_storage_bucket.function_bucket]
-}
+#   depends_on = [google_storage_bucket.function_bucket]
+# }
 
 resource "google_cloudfunctions2_function_iam_member" "invoker" {
   project        = var.project_id
@@ -68,6 +68,18 @@ data "google_project" "current" {
   project_id = var.project_id
 }
 
+locals {
+  gcf_admin_robot_service_account = "service-${data.google_project.current.number}@gcf-admin-robot.iam.gserviceaccount.com"
+}
+
+resource "google_storage_bucket_iam_member" "gcf_source_bucket_object_viewer" {
+  bucket = var.existing_bucket_name
+  role   = "roles/storage.objectViewer"
+  member = "serviceAccount:${local.gcf_admin_robot_service_account}"
+
+  depends_on = [time_sleep.wait_for_apis]
+}
+
 resource "time_sleep" "wait_for_apis" {
   create_duration = "90s"
 
@@ -85,13 +97,13 @@ resource "google_cloudfunctions2_function" "function" {
 
     source {
       storage_source {
-        bucket = google_storage_bucket.function_bucket.name
-        object = google_storage_bucket_object.function_source_zip.name
+        bucket = var.existing_bucket_name
+        object = var.existing_object_name
       }
     }
   }
 
-  depends_on = [time_sleep.wait_for_apis, google_storage_bucket_object.function_source_zip]
+  depends_on = [time_sleep.wait_for_apis , google_storage_bucket_iam_member.gcf_source_bucket_object_viewer]
 
   service_config {
     max_instance_count            = var.max_instance_count
@@ -103,8 +115,5 @@ resource "google_cloudfunctions2_function" "function" {
   }
 }
 
-# resource "google_project_iam_member" "gcf_network_user" {
-#   project = var.host_project_id
-#   role    = "roles/vpcaccess.user"
-#   member  = "serviceAccount:service-${data.google_project.current.number}@gcf-admin-robot.iam.gserviceaccount.com"
-# }
+
+

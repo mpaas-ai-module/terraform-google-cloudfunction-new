@@ -24,12 +24,7 @@ variable "vpc_connector" {
   type        = string
   description = "Full resource ID of the VPC connector"
 }
-
-variable "bucket_name_prefix" {
-  type        = string
-  description = "Prefix for the GCS bucket name"
-}
-
+ 
 variable "vpc_connector_egress_settings" {
   type        = string
   default     = "PRIVATE_RANGES_ONLY"
